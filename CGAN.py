@@ -85,8 +85,8 @@ class CGAN(object):
         self.gpu_mode = args.gpu_mode
         self.model_name = args.gan_type
         self.input_size = args.input_size
-        self.z_dim = 62
-        self.class_num = 10
+        self.z_dim = args.z_dim
+        self.class_num = args.class_num
         self.sample_num = self.class_num ** 2
 
         # load dataset

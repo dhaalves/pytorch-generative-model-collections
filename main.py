@@ -1,4 +1,5 @@
 import argparse, os, torch
+from google_drive_downloader import GoogleDriveDownloader as gdd
 from GAN import GAN
 from CGAN import CGAN
 from LSGAN import LSGAN
@@ -10,20 +11,25 @@ from infoGAN import infoGAN
 from EBGAN import EBGAN
 from BEGAN import BEGAN
 
+datasets = {'PARASITES_30': ['1TitZgUUjs3Dp4_K0iV7FFHwzxrv_T6zB', 'parasites_30', ],
+            'SOYBEAN_11': ['1Um3-QEfaKxtGnN22pNp_3KTrow5jmQZ0', 'soybean2'],
+            'LEAVES_53': ['1p8AAgwvf4DrcwVHbo9IkAcH8s-tlsKcV', 'leaves1']}
+
 """parsing and configuration"""
 def parse_args():
     desc = "Pytorch implementation of GAN collections"
     parser = argparse.ArgumentParser(description=desc)
 
+    parser.add_argument('--sample_num', type=int, default=25, help='Number of samples to generate after each epoch')
     parser.add_argument('--gan_type', type=str, default='GAN',
                         choices=['GAN', 'CGAN', 'infoGAN', 'ACGAN', 'EBGAN', 'BEGAN', 'WGAN', 'WGAN_GP', 'DRAGAN', 'LSGAN'],
                         help='The type of GAN')
-    parser.add_argument('--dataset', type=str, default='mnist', choices=['mnist', 'fashion-mnist', 'cifar10', 'cifar100', 'svhn', 'stl10', 'lsun-bed'],
+    parser.add_argument('--dataset', type=str, default='LEAVES_53', choices=['LEAVES_53', 'PARASITES_30', 'SOYBEAN_11', 'PARASITES_15', 'PARASITES_18'],
                         help='The name of dataset')
     parser.add_argument('--split', type=str, default='', help='The split flag for svhn and stl10')
-    parser.add_argument('--epoch', type=int, default=50, help='The number of epochs to run')
+    parser.add_argument('--epoch', type=int, default=5, help='The number of epochs to run')
     parser.add_argument('--batch_size', type=int, default=64, help='The size of batch')
-    parser.add_argument('--input_size', type=int, default=28, help='The size of input image')
+    parser.add_argument('--input_size', type=int, default=32, help='The size of input image')
     parser.add_argument('--save_dir', type=str, default='models',
                         help='Directory name to save the model')
     parser.add_argument('--result_dir', type=str, default='results', help='Directory name to save the generated images')
@@ -34,6 +40,7 @@ def parse_args():
     parser.add_argument('--beta2', type=float, default=0.999)
     parser.add_argument('--gpu_mode', type=bool, default=True)
     parser.add_argument('--benchmark_mode', type=bool, default=True)
+    parser.add_argument('--z_dim', type=int, default=62)
 
     return check_args(parser.parse_args())
 
@@ -72,6 +79,16 @@ def main():
     if args is None:
         exit()
 
+    file_id = datasets[args.dataset][0]
+    image_folder = datasets[args.dataset][1]
+    args.class_num = args.dataset.split('_')[1]
+    if not os.path.exists(args.dataset):
+        gdd.download_file_from_google_drive(file_id=file_id,
+                                            dest_path='./' + args.dataset + '.zip',
+                                            unzip=True)
+    args.dataset = image_folder
+
+
     if args.benchmark_mode:
         torch.backends.cudnn.benchmark = True
 
@@ -108,4 +125,5 @@ def main():
     print(" [*] Testing finished!")
 
 if __name__ == '__main__':
+
     main()

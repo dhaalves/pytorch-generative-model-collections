@@ -27,5 +27,8 @@ def dataloader(dataset, input_size, batch_size, split='train'):
         data_loader = DataLoader(
             datasets.LSUN('data/lsun', classes=['bedroom_train'], transform=transform),
             batch_size=batch_size, shuffle=True)
+    else:
+        data_loader = DataLoader(datasets.ImageFolder(dataset, transform=transform),
+                                 batch_size=batch_size, shuffle=True)
 
     return data_loader

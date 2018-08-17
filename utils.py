@@ -1,4 +1,4 @@
-import os, gzip, torch
+import os, gzip, torch, shutil
 import torch.nn as nn
 import numpy as np
 import scipy.misc
@@ -140,3 +140,11 @@ def initialize_weights(net):
         elif isinstance(m, nn.Linear):
             m.weight.data.normal_(0, 0.02)
             m.bias.data.zero_()
+
+def setup_class_folders(image_folder):
+    for d in os.listdir(image_folder):
+        dtmp = os.path.join(image_folder, d)
+        for f in os.listdir(dtmp):
+            ftmp = os.path.join(dtmp, f)
+            if os.path.isfile(ftmp):
+                shutil.move(ftmp, os.path.join(dtmp, d))

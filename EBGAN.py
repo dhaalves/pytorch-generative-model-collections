@@ -81,7 +81,7 @@ class EBGAN(object):
     def __init__(self, args):
         # parameters
         self.epoch = args.epoch
-        self.sample_num = 100
+        self.sample_num = args.sample_num
         self.batch_size = args.batch_size
         self.save_dir = args.save_dir
         self.result_dir = args.result_dir
@@ -90,7 +90,7 @@ class EBGAN(object):
         self.gpu_mode = args.gpu_mode
         self.model_name = args.gan_type
         self.input_size = args.input_size
-        self.z_dim = 62
+        self.z_dim = args.z_dim
         self.pt_loss_weight = 0.1
         self.margin = 1
 

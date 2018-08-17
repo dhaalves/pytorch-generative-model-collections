@@ -91,9 +91,9 @@ class infoGAN(object):
         self.gpu_mode = args.gpu_mode
         self.model_name = args.gan_type
         self.input_size = args.input_size
-        self.z_dim = 62
+        self.z_dim = args.z_dim
         self.SUPERVISED = SUPERVISED        # if it is true, label info is directly used for code
-        self.len_discrete_code = 10         # categorical distribution (i.e. label)
+        self.len_discrete_code = args.class_num         # categorical distribution (i.e. label)
         self.len_continuous_code = 2        # gaussian distribution (e.g. rotation, thickness)
         self.sample_num = self.len_discrete_code ** 2
 
