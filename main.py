@@ -21,7 +21,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description=desc)
 
     parser.add_argument('--sample_num', type=int, default=25, help='Number of samples to generate after each epoch')
-    parser.add_argument('--gan_type', type=str, default='GAN',
+    parser.add_argument('--gan_type', type=str, default='BEGAN',
                         choices=['GAN', 'CGAN', 'infoGAN', 'ACGAN', 'EBGAN', 'BEGAN', 'WGAN', 'WGAN_GP', 'DRAGAN', 'LSGAN'],
                         help='The type of GAN')
     parser.add_argument('--dataset', type=str, default='LEAVES_53', choices=['LEAVES_53', 'PARASITES_30', 'SOYBEAN_11', 'PARASITES_15', 'PARASITES_18'],
@@ -29,7 +29,7 @@ def parse_args():
     parser.add_argument('--split', type=str, default='', help='The split flag for svhn and stl10')
     parser.add_argument('--epoch', type=int, default=5, help='The number of epochs to run')
     parser.add_argument('--batch_size', type=int, default=64, help='The size of batch')
-    parser.add_argument('--input_size', type=int, default=32, help='The size of input image')
+    parser.add_argument('--input_size', type=int, default=100, help='The size of input image')
     parser.add_argument('--save_dir', type=str, default='models',
                         help='Directory name to save the model')
     parser.add_argument('--result_dir', type=str, default='results', help='Directory name to save the generated images')
@@ -123,6 +123,11 @@ def main():
     # visualize learned generator
     gan.visualize_results(args.epoch)
     print(" [*] Testing finished!")
+
+    # gan.load(dir='/mnt/sdb1/datasets/parasites/ALL-15_SYNTHETIC/A.lumbricoides/BEGAN')
+    # sample = gan.G(torch.rand((args.batch_size, args.z_dim)).cuda())
+    # gan.visualize_results(args.epoch, output_path='generated_imgs', sample_num=1, fix=False)
+
 
 if __name__ == '__main__':
 

@@ -73,6 +73,7 @@ class discriminator(nn.Module):
 class BEGAN(object):
     def __init__(self, args):
         # parameters
+        self.device = torch.device('cuda:0')
         self.epoch = args.epoch
         self.sample_num = args.sample_num
         self.batch_size = args.batch_size
@@ -89,13 +90,19 @@ class BEGAN(object):
         self.k = 0.0
         self.lr_lower_boundary = 0.00002
 
+
         # load dataset
         self.data_loader = dataloader(self.dataset, self.input_size, self.batch_size)
         data = self.data_loader.__iter__().__next__()[0]
 
         # networks init
         self.G = generator(input_dim=self.z_dim, output_dim=data.shape[1], input_size=self.input_size)
+        # self.G = nn.DataParallel(self.G)
+        # self.G = self.G.to(self.device)
         self.D = discriminator(input_dim=data.shape[1], output_dim=1, input_size=self.input_size)
+        # self.D = nn.DataParallel(self.D)
+        # self.D = self.D.to(self.device)
+
         self.G_optimizer = optim.Adam(self.G.parameters(), lr=0.0002, betas=(args.beta1, args.beta2))
         self.D_optimizer = optim.Adam(self.D.parameters(), lr=0.0002, betas=(args.beta1, args.beta2))
 
@@ -142,6 +149,7 @@ class BEGAN(object):
 
                 if self.gpu_mode:
                     x_, z_ = x_.cuda(), z_.cuda()
+                    # x_, z_ = x_.to(self.device), z_.to(self.device)
 
                 # update D network
                 self.D_optimizer.zero_grad()
@@ -218,15 +226,18 @@ class BEGAN(object):
         self.save()
         utils.generate_animation(self.result_dir + '/' + self.dataset + '/' + self.model_name + '/' + self.model_name,
                                  self.epoch)
-        utils.loss_plot(self.train_hist, os.path.join(self.save_dir, self.dataset, self.model_name), self.model_name)
+        # utils.loss_plot(self.train_hist, os.path.join(self.save_dir, self.dataset, self.model_name), self.model_name)
 
-    def visualize_results(self, epoch, fix=True):
+    def visualize_results(self, epoch=None, fix=True, output_path=None, sample_num=None):
         self.G.eval()
 
-        if not os.path.exists(self.result_dir + '/' + self.dataset + '/' + self.model_name):
-            os.makedirs(self.result_dir + '/' + self.dataset + '/' + self.model_name)
+        sample_num = self.sample_num if sample_num is None else sample_num
+        output_path = os.path.join(self.result_dir, self.dataset, self.model_name, self.model_name) if output_path is None else output_path
 
-        tot_num_samples = min(self.sample_num, self.batch_size)
+        if not os.path.exists(output_path):
+            os.makedirs(output_path)
+
+        tot_num_samples = min(sample_num, self.batch_size)
         image_frame_dim = int(np.floor(np.sqrt(tot_num_samples)))
 
         if fix:
@@ -246,8 +257,9 @@ class BEGAN(object):
             samples = samples.data.numpy().transpose(0, 2, 3, 1)
 
         samples = (samples + 1) / 2
+
         utils.save_images(samples[:image_frame_dim * image_frame_dim, :, :, :], [image_frame_dim, image_frame_dim],
-                          self.result_dir + '/' + self.dataset + '/' + self.model_name + '/' + self.model_name + '_epoch%03d' % epoch + '.png')
+                          os.path.join(output_path,  self.model_name + '_epoch%03d' % epoch + '.png'))
 
     def save(self):
         save_dir = os.path.join(self.save_dir, self.dataset, self.model_name)
@@ -261,8 +273,10 @@ class BEGAN(object):
         with open(os.path.join(save_dir, self.model_name + '_history.pkl'), 'wb') as f:
             pickle.dump(self.train_hist, f)
 
-    def load(self):
-        save_dir = os.path.join(self.save_dir, self.dataset, self.model_name)
+    def load(self, dir=None, model='G'):
+        save_dir = os.path.join(self.save_dir, self.dataset, self.model_name) if dir is None else dir
 
-        self.G.load_state_dict(torch.load(os.path.join(save_dir, self.model_name + '_G.pkl')))
-        self.D.load_state_dict(torch.load(os.path.join(save_dir, self.model_name + '_D.pkl')))
+        if model == 'G':
+            self.G.load_state_dict(torch.load(os.path.join(save_dir, self.model_name + '_G.pkl')))
+        elif model == 'D':
+            self.D.load_state_dict(torch.load(os.path.join(save_dir, self.model_name + '_D.pkl')))
